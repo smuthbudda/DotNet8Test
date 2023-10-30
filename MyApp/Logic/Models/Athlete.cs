@@ -2,9 +2,9 @@
 {
     public class Athlete
     {
-        public int ID { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Event { get; set; }
+        public Guid AthleteID { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required string Event { get; set; }
     }
 }

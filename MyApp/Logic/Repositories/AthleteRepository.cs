@@ -13,22 +13,22 @@ public class AthleteRepository : ControllerBase
         _context = context;
     }
 
-    public async Task<List<Athlete>> GetAllAthletes() => await _context.Athlete.ToListAsync();
+    public async Task<List<Athlete>> GetAllAthletes() => await _context.Athletes.ToListAsync();
 
-    public async Task<(int?, APIEnums.Status)> InsertAthlete(Athlete model)
+    public async Task<(Guid?, APIEnums.Status)> InsertAthlete(Athlete model)
     {
         if (!ModelState.IsValid)
             return (null, APIEnums.Status.error);
 
-        await _context.Athlete.AddAsync(model);
+        await _context.Athletes.AddAsync(model);
         await _context.SaveChangesAsync();
 
-        return (model.ID, APIEnums.Status.success);
+        return (model.AthleteID, APIEnums.Status.success);
     }
 
-    public async Task DeleteAthlete(int id)
+    public async Task DeleteAthlete(Guid id)
     {
-        var entity = await _context.Athlete.FindAsync(id);
+        var entity = await _context.Athletes.FindAsync(id);
 
         if (entity is not null)
             _context.Remove(entity);

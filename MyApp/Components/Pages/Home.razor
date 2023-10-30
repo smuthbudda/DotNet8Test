@@ -14,7 +14,7 @@ Hey wtf
     <div class="d-flex gap-2">
         @foreach (var athlete in Athletes)
         {
-            <ul @onclick=@(async ()=>{ await _athleteRepository.DeleteAthlete(athlete.ID);await  LoadAthletes();})>
+            <ul @onclick=@(async ()=>{ await _athleteRepository.DeleteAthlete(athlete.AthleteID);await  LoadAthletes();})>
                 <li>
                     @athlete.FirstName
                 </li>
@@ -22,7 +22,7 @@ Hey wtf
                     @athlete.LastName
                 </li>
                 <li>
-                    @athlete.ID
+                    @athlete.AthleteID
                 </li>
                 <li>
                     @athlete.Event
@@ -38,4 +38,4 @@ else
         Loading.....
     </div>
 }
-
+<button @onclick=GetVideoFrames>Generate Frames </button>

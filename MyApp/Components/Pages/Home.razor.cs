@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MyApp.Logic.Models;
 using MyApp.Logic.Repositories;
+using MyApp.Logic.Video;
 namespace MyApp.Components.Pages;
 
 public partial class Home
@@ -28,5 +29,11 @@ public partial class Home
         Athletes = await _athleteRepository.GetAllAthletes();
         Loading = false;
         StateHasChanged();
+    }
+
+    private async Task GetVideoFrames()
+    {
+        var videoConverter = new ProcessVideoFile();
+        await videoConverter.ConvertVideoToFrames();
     }
 }

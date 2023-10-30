@@ -9,8 +9,8 @@ public class MyDbContext : DbContext
     public MyDbContext(DbContextOptions<MyDbContext> options)
             : base(options) { }
 
-    public DbSet<Athlete> Athlete { get; set; }
-
+    public DbSet<Athlete> Athletes { get; set; }
+    public DbSet<Frame> Frames { get; set; }
 
 }
 
