@@ -4,38 +4,45 @@
 @attribute [StreamRendering(true)]
 
 <PageTitle>Home</PageTitle>
+<div class="container">
+    @if (!Loading)
+    {
+        <div class="grid">
+            @foreach (var athlete in Athletes)
+            {
+                <ul @onclick=@(async ()=>{ await _athleteRepository.DeleteAthlete(athlete.AthleteID);await LoadAthletes();})>
+                    <li>
+                        @athlete.FirstName
+                    </li>
+                    <li>
+                        @athlete.LastName
+                    </li>
+                    <li>
+                        @athlete.AthleteID
+                    </li>
+                    <li>
+                        @athlete.Event
+                    </li>
+                </ul>
+            }
+        </div>
+    }
+    else
+    {
+        <div>
+            Loading.....
+        </div>
+    }
+    <button class="btn btn-light" @onclick=GenerateAthlete>Generate New Athlete</button>
+    <button @onclick=GetVideoFrames>Generate Frames </button>
+</div>
 
-Hey wtf
 
-<button class="btn btn-light" @onclick=GenerateAthlete>Generate New Athlete</button>
-
-@if (!Loading)
-{
-    <div class="d-flex gap-2">
-        @foreach (var athlete in Athletes)
-        {
-            <ul @onclick=@(async ()=>{ await _athleteRepository.DeleteAthlete(athlete.AthleteID);await  LoadAthletes();})>
-                <li>
-                    @athlete.FirstName
-                </li>
-                <li>
-                    @athlete.LastName
-                </li>
-                <li>
-                    @athlete.AthleteID
-                </li>
-                <li>
-                    @athlete.Event
-                </li>
-
-            </ul>
-        }
-    </div>
-}
-else
-{
-    <div>
-        Loading.....
-    </div>
-}
-<button @onclick=GetVideoFrames>Generate Frames </button>
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        max-height: 1000px;
+    }
+</style>

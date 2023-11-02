@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\MyApp.Client\Pages\VideoConverter.razor.cs" Link="VideoConverter.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MyApp.Client\MyApp.Client.csproj" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="FFmpegBlazor" Version="1.0.0.7" />
     <PackageReference Include="MediaToolkit" Version="1.1.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0-rc.2.23480.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.13" />

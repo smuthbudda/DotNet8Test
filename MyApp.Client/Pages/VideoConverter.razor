@@ -1,0 +1,171 @@
+﻿@page "/VideoConversion"
+@using FFmpegBlazor
+@inject IJSRuntime Runtime
+@implements IDisposable
+@attribute [RenderModeInteractiveAuto]
+
+<PageTitle>Convert MP4 to MP3</PageTitle>
+
+@if (Isloading)
+{
+    <div class="d-flex justify-content-center mt-4">
+        spinner
+    </div>
+}
+else
+{
+    <div>
+        <h1>Convert MP4 to MP3</h1>
+        Extract audio from an MP4 video and create an MP3 audio file.
+        <br />
+        <br />
+        <div>
+            <label for="videoFile">Video file:</label>
+            <InputFile id="videoFile" OnChange="LoadVideoFile" />
+        </div>
+        <br />
+        <video width="800" controls src="@videoInputUrl" />
+        <br />
+        <br />
+        <input type="checkbox" @bind-value="@download" />
+        &nbsp; Download Output File
+        <br />
+        <br />
+        <button class="btn btn-primary" @onclick="Process">Convert MP4 to MP3</button>
+        <br />
+        <br />
+        <audio controls src="@audioOutputUrl" />
+        <br />
+        <Logger LogMessages="@logMessages" Progress="@progressMessage" Rows="10" />
+    </div>
+}
+
+
+@code {
+    FFMPEG? ffMpeg;
+    byte[]? videoBuffer;
+    Boolean Isloading = true;
+    string? videoInputUrl = string.Empty;
+    string audioOutputUrl = string.Empty;
+    string logMessages = string.Empty;
+    string progressMessage = string.Empty;
+    bool download = false;
+    const string inputFile = "input.mp4";
+    const string outputFile = "output.jpg";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Wire-up events
+        if (firstRender)
+        {
+            if (FFmpegFactory.Runtime == null)
+            {
+                FFmpegFactory.Logger += LogToConsole;
+                FFmpegFactory.Progress += ProgressChange;
+            }
+            // Initialize Library
+            await FFmpegFactory.Init(Runtime);
+            Isloading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async void LoadVideoFile(InputFileChangeEventArgs v)
+    {
+        logMessages = string.Empty;
+        progressMessage = string.Empty;
+        var file = v.GetMultipleFiles()[0];
+
+        int maxSize = 100000000;
+
+        using var stream = file.OpenReadStream(maxSize);
+        videoBuffer = new byte[file.Size];
+
+        await stream.ReadAsync(videoBuffer);
+
+        videoInputUrl = FFmpegFactory.CreateURLFromBuffer(videoBuffer,
+            inputFile, file.ContentType);
+
+        StateHasChanged();
+    }
+
+    private async void Process()
+    {
+        try
+        {
+            ffMpeg = FFmpegFactory.CreateFFmpeg(new FFmpegConfig() { Log = true });
+
+            if (!ffMpeg.IsLoaded)
+                await ffMpeg.Load();
+
+            if (!ffMpeg.IsLoaded)
+                return;
+
+            ffMpeg.WriteFile(inputFile, videoBuffer);
+
+            // Pass CLI argument here equivalent to ffmpeg -i inputFile.mp4 outputFile.mp3
+
+            await ffMpeg.Run("-i", inputFile, "out%03d.png");
+
+            ffMpeg.UnlinkFile(inputFile);
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    private async void ProgressChange(Progress message)
+    {
+        // Display progress % (0-1)
+        // Cap the progress as it doesn't always report (0-1)
+        var progressRatio =
+            message.Ratio <= 0 ? 0 : message.Ratio >= 100 ? 1 : message.Ratio;
+        progressMessage = $"Progress: {progressRatio.ToString("P2")}";
+
+        Console.WriteLine(progressMessage);
+        LogToUi(progressMessage);
+
+        // If FFmpeg processing is complete, generate a media URL so that it can be
+        // played and/or downloaded
+        if (message.Ratio == 1)
+        {
+            progressMessage = $"Progress: 100%";
+
+            // Get a bufferPointer from C WASM to C#
+            var res = await ffMpeg!.ReadFile(outputFile);
+
+            // Generate a URL from the file bufferPointer
+            audioOutputUrl = FFmpegFactory.CreateURLFromBuffer(res, outputFile,
+                "audio/mp3");
+
+            if (download)
+            {
+                FFmpegFactory.DownloadBufferAsFile(res, outputFile,
+                    "audio/mp3");
+            }
+
+            // Rerender DOM
+            StateHasChanged();
+        }
+    }
+
+    private void LogToConsole(Logs message)
+    {
+        var logMessage = $"{message.Type} {message.Message}";
+        Console.WriteLine(logMessage);
+        LogToUi(logMessage);
+    }
+
+    private void LogToUi(string message)
+    {
+        logMessages += $"{message}\r\n";
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        FFmpegFactory.Logger -= LogToConsole;
+        FFmpegFactory.Progress -= ProgressChange;
+    }
+}
